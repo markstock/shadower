@@ -74,18 +74,18 @@ int main(int argc, char *argv[])
   float shade_coeff = 0.5;
 
   // factors on r,g,b to determine height
-  float scale_r = -0.3;
-  float scale_g = -0.6;
-  float scale_b = -0.1;
+  float scale_r = 0.3;
+  float scale_g = 0.6;
+  float scale_b = 0.1;
 
   // shadow cone growth from top to bottom, normalized by image width
-  float shadow_width = 0.5;
+  float shadow_width = 2.0;
 
   // shadow cone downward shift from top to bottom, normalized by image height
-  float shadow_shift = 0.05;
+  float shadow_shift = 0.03;
 
   // number of discrete layers in input image
-  unsigned int hgt_bins = 50;
+  unsigned int hgt_bins = 20;
 
   //float hue_displace = 0.05 * (float)std::max(in_width, in_height);
   //unsigned int band = (int)hue_displace + 2;
@@ -130,6 +130,8 @@ int main(int argc, char *argv[])
   float max_hgt = -9.9e+9;
   std::vector<float> hgt;
   hgt.resize(out_width * out_height);
+
+  // use rgb weights
   for (unsigned int i = 0; i < out_width*out_height; i++) {
     // copy over the alpha channel
     hgt[i] = scale_r * (float)in_image[4*i+0]/255.0
@@ -138,15 +140,19 @@ int main(int argc, char *argv[])
     if (hgt[i] < min_hgt) min_hgt = hgt[i];
     if (hgt[i] > max_hgt) max_hgt = hgt[i];
   }
+
+  // use hsv heights
+
+  // normalize heights
   std::cout << "min/max height " << min_hgt << "/"<< max_hgt << std::endl;
   // scale to 0..1
   for (unsigned int i = 0; i < out_width*out_height; i++) {
     hgt[i] = (hgt[i] - min_hgt) / (max_hgt - min_hgt);
   }
 
-  float last_hgt = 1.0 + 0.5/(float)hgt_bins;
 
   // march through heights from top to bottom
+  float last_hgt = 1.0 + 0.5/(float)hgt_bins;
   for (unsigned int ilayer = 0; ilayer < hgt_bins+1; ++ilayer) {
 
     std::cout << "  computing layer " << ilayer;
@@ -154,10 +160,11 @@ int main(int argc, char *argv[])
 
     // loop over all pixels and trigger any that are now above the active height
     unsigned int num_pix = 0;
+    #pragma omp parallel for reduction(+:num_pix)
     for (unsigned int i = 0; i < out_width*out_height; i++) {
       if (hgt[i] > this_hgt && hgt[i] < last_hgt) {
         // apply current shadow to the pixel
-        float factor = 1.0 - shade_coeff*shadow[i];
+        const float factor = 1.0 - shade_coeff*shadow[i];
         out_image[4*i+0] = (unsigned char)(factor*(float)out_image[4*i+0]);
         out_image[4*i+1] = (unsigned char)(factor*(float)out_image[4*i+1]);
         out_image[4*i+2] = (unsigned char)(factor*(float)out_image[4*i+2]);
@@ -184,17 +191,19 @@ int main(int argc, char *argv[])
     // diffuse the shadow map
 
     // might need to do this several times
-    float total_coeff = shadow_width * (float)out_width / (float)hgt_bins;
-    unsigned int num_iters = 1 + (int)total_coeff;
-    float coeff_per = total_coeff / (float)num_iters;
+    const float total_coeff = shadow_width * (float)out_width / (float)hgt_bins;
+    const unsigned int num_iters = 1 + (int)total_coeff;
+    const float coeff_per = total_coeff / (float)num_iters;
     std::cout << ", with " << num_iters << " diffusion iters";
 
     for (unsigned int it = 0; it < num_iters; ++it) {
       // first, make a copy
       shadow_copy = shadow;
+
+      #pragma omp parallel for
       for (unsigned int y = 1; y < out_height-1; ++y) {
         for (unsigned int x = 1; x < out_width-1; ++x) {
-          size_t addr = out_width*y + x;
+          const size_t addr = out_width*y + x;
           shadow[addr] += coeff_per*0.125*(shadow_copy[addr-1] +
                                            shadow_copy[addr+1] +
                                            shadow_copy[addr-out_width] +
@@ -208,10 +217,17 @@ int main(int argc, char *argv[])
     // first, make a copy
     shadow_copy = shadow;
     // how far to look
-    float dy = (float)out_height * shadow_shift / (float)hgt_bins;
+    const float dy = (float)out_height * shadow_shift / (float)hgt_bins;
     std::cout << ", shifted " << dy << " pix down" << std::endl;
-    for (unsigned int y = 0; y < out_height; ++y) {
+    const unsigned int iy = dy;
+    const unsigned int iyp1 = iy+1;
+    const float yfrac = dy - (float)iy;
+
+    #pragma omp parallel for
+    for (unsigned int y = iyp1; y < out_height; ++y) {
       for (unsigned int x = 0; x < out_width; ++x) {
+        const size_t addr = out_width*y + x;
+        shadow[addr] = yfrac*shadow_copy[addr-iyp1*out_width] + (1.0-yfrac)*shadow_copy[addr-iy*out_width];
       }
     }
 

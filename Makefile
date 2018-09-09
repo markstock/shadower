@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-ansi -pedantic -Wall -Wextra -O3
+CFLAGS=-ansi -pedantic -Wall -Wextra -O3 -fopenmp
 
 all : shadower
 
