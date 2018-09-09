@@ -70,21 +70,28 @@ int main(int argc, char *argv[])
   }
 */
 
+  // how dark should the shadow be? 1.0 = perfect dark, 0.0 = not there
+  float shade_coeff = 0.5;
+
+  // factors on r,g,b to determine height
+  float scale_r = -0.3;
+  float scale_g = -0.6;
+  float scale_b = -0.1;
+
   // shadow cone growth from top to bottom, normalized by image width
-  float shadow_width = 0.2;
+  float shadow_width = 0.5;
 
   // shadow cone downward shift from top to bottom, normalized by image height
   float shadow_shift = 0.05;
 
-  // define the shadowing parameters
+  // number of discrete layers in input image
   unsigned int hgt_bins = 50;
-  //float hue_displace = 0.05 * (float)std::max(in_width, in_height);
 
-  // idea: bin all of the hues (easy!) and divide it into contiguous regions
-  //   that way, for inputs with similar hue, we can still bin
+  //float hue_displace = 0.05 * (float)std::max(in_width, in_height);
+  //unsigned int band = (int)hue_displace + 2;
+
 
   // create new image data arrays
-  //unsigned int band = (int)hue_displace + 2;
   unsigned int band = 0;
   unsigned int out_width = in_width + 2*band;
   unsigned int out_height = in_height + 2*band;
@@ -119,9 +126,6 @@ int main(int argc, char *argv[])
   shadow_copy.resize(out_width * out_height);
 
   // calculate height map (0..1)
-  float scale_r = -0.3;
-  float scale_g = -0.6;
-  float scale_b = -0.1;
   float min_hgt = 9.9e+9;
   float max_hgt = -9.9e+9;
   std::vector<float> hgt;
@@ -141,7 +145,6 @@ int main(int argc, char *argv[])
   }
 
   float last_hgt = 1.0 + 0.5/(float)hgt_bins;
-  float shade_coeff = 0.5;
 
   // march through heights from top to bottom
   for (unsigned int ilayer = 0; ilayer < hgt_bins+1; ++ilayer) {
@@ -150,6 +153,7 @@ int main(int argc, char *argv[])
     float this_hgt = last_hgt - 1.0/(float)hgt_bins;
 
     // loop over all pixels and trigger any that are now above the active height
+    unsigned int num_pix = 0;
     for (unsigned int i = 0; i < out_width*out_height; i++) {
       if (hgt[i] > this_hgt && hgt[i] < last_hgt) {
         // apply current shadow to the pixel
@@ -161,7 +165,20 @@ int main(int argc, char *argv[])
         // and update the shadow map
         // should we set to 1, or add 1?
         shadow[i] = 1.0;
+
+        // increment our counter
+        num_pix++;
       }
+    }
+    std::cout << ", found " << (100.0*num_pix)/((float)out_width*out_height) << "% pixels";
+
+    // update the bands
+    last_hgt = this_hgt;
+
+    // are we done?
+    if (this_hgt < 0.0) {
+      std::cout << std::endl;
+      break;
     }
 
     // diffuse the shadow map
@@ -170,7 +187,7 @@ int main(int argc, char *argv[])
     float total_coeff = shadow_width * (float)out_width / (float)hgt_bins;
     unsigned int num_iters = 1 + (int)total_coeff;
     float coeff_per = total_coeff / (float)num_iters;
-    std::cout << ", with " << num_iters << " diffusion iterations";
+    std::cout << ", with " << num_iters << " diffusion iters";
 
     for (unsigned int it = 0; it < num_iters; ++it) {
       // first, make a copy
@@ -192,14 +209,12 @@ int main(int argc, char *argv[])
     shadow_copy = shadow;
     // how far to look
     float dy = (float)out_height * shadow_shift / (float)hgt_bins;
-    std::cout << ", and shifted " << dy << " pixels down" << std::endl;
+    std::cout << ", shifted " << dy << " pix down" << std::endl;
     for (unsigned int y = 0; y < out_height; ++y) {
       for (unsigned int x = 0; x < out_width; ++x) {
       }
     }
 
-    // update the bands
-    last_hgt = this_hgt;
   }
 
 
