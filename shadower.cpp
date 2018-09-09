@@ -71,21 +71,21 @@ int main(int argc, char *argv[])
 */
 
   // how dark should the shadow be? 1.0 = perfect dark, 0.0 = not there
-  float shade_coeff = 0.5;
+  float shade_coeff = 0.8;
 
   // factors on r,g,b to determine height
-  float scale_r = 0.3;
-  float scale_g = 0.6;
-  float scale_b = 0.1;
+  float scale_r = -0.3;
+  float scale_g = -0.6;
+  float scale_b = -0.1;
 
   // shadow cone growth from top to bottom, normalized by image width
-  float shadow_width = 2.0;
+  float shadow_width = 1.0;
 
   // shadow cone downward shift from top to bottom, normalized by image height
   float shadow_shift = 0.03;
 
   // number of discrete layers in input image
-  unsigned int hgt_bins = 20;
+  unsigned int hgt_bins = 16;
 
   //float hue_displace = 0.05 * (float)std::max(in_width, in_height);
   //unsigned int band = (int)hue_displace + 2;
@@ -124,6 +124,8 @@ int main(int argc, char *argv[])
   // make a copy so that we can diffuse it
   std::vector<float> shadow_copy;
   shadow_copy.resize(out_width * out_height);
+
+  // idea: blur the input color map before computing heights!
 
   // calculate height map (0..1)
   float min_hgt = 9.9e+9;
