@@ -9,7 +9,8 @@ Add soft shadows to a png image
 
 The last command turns the image on the left into the image on the right.
 
-![before](media/in.png "Before" =400x) ![after](media/out.png "After" =400x)
+<img src="media/in.png" width="400" height="400" />
+<img src="media/out.png" width="400" height="400" />
 
 ### Thanks
 
