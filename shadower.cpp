@@ -9,15 +9,68 @@
 #include "lodepng.h"
 #include <iostream>
 #include <cmath>
+#include <cstring>
 
+//
+// basic usage
+//
+static void usage() {
+  std::cerr << "Usage: shadower [-sc=<shade coeff>] [-sw=<shadow width>] [-ss=<shadow shift>] [-nb=<bins>] [-o=<outfile>] in.png" << std::endl;
+  exit(1);
+}
 
 //
 // entry and exit
 //
 int main(int argc, char *argv[])
 {
-  const char* in_file = argc > 1 ? argv[1] : "test.png";
-  const char* out_file = "out.png";
+  char in_file[255] = "in.png";
+  char out_file[255] = "out.png";
+
+  // how dark should the shadow be? 1.0 = perfect dark, 0.0 = not there
+  float shade_coeff = 0.8;
+
+  // factors on r,g,b to determine height
+  float scale_r = -0.3;
+  float scale_g = -0.6;
+  float scale_b = -0.1;
+
+  // shadow cone growth from top to bottom, normalized by image width
+  float shadow_width = 1.0;
+
+  // shadow cone downward shift from top to bottom, normalized by image height
+  float shadow_shift = 0.03;
+
+  // number of discrete layers in input image
+  unsigned int hgt_bins = 16;
+
+  // parse the command-line arguments
+  for (int iarg=1; iarg<argc; ++iarg) {
+    if (strncmp(argv[iarg], "-sc=", 4) == 0) {
+      float new_val = atof(argv[iarg] + 4);
+      shade_coeff = new_val;
+    } else if (strncmp(argv[iarg], "-sw=", 4) == 0) {
+      float new_val = atof(argv[iarg] + 4);
+      if (new_val <= 0.f) usage();
+      shadow_width = new_val;
+    } else if (strncmp(argv[iarg], "-ss=", 4) == 0) {
+      float new_val = atof(argv[iarg] + 4);
+      if (new_val <= 0.f) usage();
+      shadow_shift = new_val;
+    } else if (strncmp(argv[iarg], "-nb=", 4) == 0) {
+      int new_val = atoi(argv[iarg] + 4);
+      hgt_bins = new_val;
+    } else if (strncmp(argv[iarg], "-o=", 3) == 0) {
+      std::strcpy (out_file, argv[iarg]+3);
+    } else if (strncmp(argv[iarg], "-h", 2) == 0) {
+      usage();
+    } else if (strncmp(argv[iarg], "--h", 3) == 0) {
+      usage();
+    } else {
+      // assume it's the file name
+      std::strcpy (in_file, argv[iarg]);
+    }
+  }
 
   // load in the test file
   std::vector<unsigned char> in_image; // the raw pixels
@@ -69,23 +122,6 @@ int main(int argc, char *argv[])
         in_hsv[4*i+0] = 171 + 43 * (r - g) / (rgbMax - rgbMin);
   }
 */
-
-  // how dark should the shadow be? 1.0 = perfect dark, 0.0 = not there
-  float shade_coeff = 0.8;
-
-  // factors on r,g,b to determine height
-  float scale_r = -0.3;
-  float scale_g = -0.6;
-  float scale_b = -0.1;
-
-  // shadow cone growth from top to bottom, normalized by image width
-  float shadow_width = 1.0;
-
-  // shadow cone downward shift from top to bottom, normalized by image height
-  float shadow_shift = 0.03;
-
-  // number of discrete layers in input image
-  unsigned int hgt_bins = 16;
 
   //float hue_displace = 0.05 * (float)std::max(in_width, in_height);
   //unsigned int band = (int)hue_displace + 2;
