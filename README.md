@@ -4,7 +4,8 @@ Add soft shadows to a png image
 ### Using shadower
 
     make
-    ./shadower file.png
+    ./shadower -h
+    ./shadower in.png -sc=0.6 -sw=2.0 -ss=0.06 -nb=20 -o=out.png
 
 ### Thanks
 
