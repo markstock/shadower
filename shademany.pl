@@ -4,10 +4,10 @@
 
 #my $exe = "/home/mstock/code/shadower/shadower";
 my $exe = "shadower";
-my @sc = (0.6, 0.8);
-my @ss = (0.04, 0.06, 0.08);
-my @sw = (1.0, 4.0);
-my @nb = (15, 25);
+my @sc = (0.6, 0.8);		# shadow coefficient
+my @ss = (0.04, 0.06, 0.08);	# shadow shift
+my @sw = (1.0, 4.0);		# shadow width
+my @nb = (15, 25);		# number of height bins
 
 # default file names
 my $infile = "in.png";
@@ -54,7 +54,7 @@ foreach $thisb (@nb) {
 
   if (! -e "${outfile}") {
     print "\n${command}\n";
-    #system($command);
+    system($command);
   }
 
   $cnt = $cnt + 1;
