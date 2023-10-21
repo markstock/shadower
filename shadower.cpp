@@ -31,9 +31,9 @@ int main(int argc, char *argv[])
   float shade_coeff = 0.8;
 
   // factors on r,g,b to determine height
-  float scale_r = -0.3;
-  float scale_g = -0.6;
-  float scale_b = -0.1;
+  float scale_r = 0.3;
+  float scale_g = 0.6;
+  float scale_b = 0.1;
 
   // shadow cone growth from top to bottom, normalized by image width
   float shadow_width = 1.0;
@@ -49,17 +49,21 @@ int main(int argc, char *argv[])
     if (strncmp(argv[iarg], "-sc=", 4) == 0) {
       float new_val = atof(argv[iarg] + 4);
       shade_coeff = new_val;
+      std::cout << "shade coeff is now " << shade_coeff << std::endl;
     } else if (strncmp(argv[iarg], "-sw=", 4) == 0) {
       float new_val = atof(argv[iarg] + 4);
       if (new_val <= 0.f) usage();
       shadow_width = new_val;
+      std::cout << "shadow width is now " << shadow_width << std::endl;
     } else if (strncmp(argv[iarg], "-ss=", 4) == 0) {
       float new_val = atof(argv[iarg] + 4);
       if (new_val <= 0.f) usage();
       shadow_shift = new_val;
+      std::cout << "shadow shift is now " << shadow_shift << std::endl;
     } else if (strncmp(argv[iarg], "-nb=", 4) == 0) {
       int new_val = atoi(argv[iarg] + 4);
       hgt_bins = new_val;
+      std::cout << "number of bins is now " << hgt_bins << std::endl;
     } else if (strncmp(argv[iarg], "-o=", 3) == 0) {
       std::strcpy (out_file, argv[iarg]+3);
     } else if (strncmp(argv[iarg], "-h", 2) == 0) {
