@@ -21,3 +21,4 @@ The arguments are:
 ### Thanks
 
 Many thanks to Lode Vandevenne for the [LodePNG](http://lodev.org/lodepng/) code!
+The sample image is from my own two-dimensional fluid dynamics code [vic2d](https://github.com/markstock/vic2d).
