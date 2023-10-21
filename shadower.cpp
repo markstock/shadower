@@ -3,7 +3,7 @@
 //
 // Add shadows to a png image by marching a shadow mask through the image
 //
-// (c)2018 Mark J Stock
+// (c)2018,23 Mark J Stock
 //
 
 #include "lodepng.h"
@@ -15,7 +15,7 @@
 // basic usage
 //
 static void usage() {
-  std::cerr << "Usage: shadower [-sc=<shade coeff>] [-sw=<shadow width>] [-ss=<shadow shift>] [-nb=<bins>] [-o=<outfile>] in.png" << std::endl;
+  std::cerr << "Usage: shadower [-sc=<shade coeff>] [-sw=<shadow width>] [-ss=<shadow shift>] [-nb=<bins>] [-i] [-o=<outfile>] in.png" << std::endl;
   exit(1);
 }
 
@@ -66,6 +66,11 @@ int main(int argc, char *argv[])
       std::cout << "number of bins is now " << hgt_bins << std::endl;
     } else if (strncmp(argv[iarg], "-o=", 3) == 0) {
       std::strcpy (out_file, argv[iarg]+3);
+    } else if (strncmp(argv[iarg], "-i", 2) == 0) {
+      std::cout << "inverting front-to-back (darker colors are now higher)" << std::endl;
+      scale_r *= -1.;
+      scale_g *= -1.;
+      scale_b *= -1.;
     } else if (strncmp(argv[iarg], "-h", 2) == 0) {
       usage();
     } else if (strncmp(argv[iarg], "--h", 3) == 0) {
