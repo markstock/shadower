@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
   float scale_r = 0.3;
   float scale_g = 0.6;
   float scale_b = 0.1;
+  bool invert = false;
 
   // shadow cone growth from top to bottom, normalized by image width
   float shadow_width = 1.0;
@@ -68,9 +69,7 @@ int main(int argc, char *argv[])
       std::strcpy (out_file, argv[iarg]+3);
     } else if (strncmp(argv[iarg], "-i", 2) == 0) {
       std::cout << "inverting front-to-back (darker colors are now higher)" << std::endl;
-      scale_r *= -1.;
-      scale_g *= -1.;
-      scale_b *= -1.;
+      invert = true;
     } else if (strncmp(argv[iarg], "-h", 2) == 0) {
       usage();
     } else if (strncmp(argv[iarg], "--h", 3) == 0) {
@@ -186,6 +185,14 @@ int main(int argc, char *argv[])
            + scale_b * (float)in_image[4*i+2]/255.0;
     if (hgt[i] < min_hgt) min_hgt = hgt[i];
     if (hgt[i] > max_hgt) max_hgt = hgt[i];
+  }
+  if (invert) {
+    for (unsigned int i = 0; i < out_width*out_height; i++) {
+      hgt[i] = 1.f - hgt[i];
+    }
+    float tmphgt = min_hgt;
+    min_hgt = 1.f-max_hgt;
+    max_hgt = 1.f-tmphgt;
   }
 
   // use hsv heights
