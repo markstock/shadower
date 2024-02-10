@@ -22,3 +22,16 @@ The arguments are:
 
 Many thanks to Lode Vandevenne for the [LodePNG](http://lodev.org/lodepng/) code!
 The sample image is from my own two-dimensional fluid dynamics code [vic2d](https://github.com/markstock/vic2d).
+
+### Citing Shadower
+
+I don't get paid for writing or maintaining this, so if you find this tool useful or mention it in your writing, please please cite it by using the following BibTeX entry.
+
+```
+@Misc{Shadower2018,
+  author =       {Mark J.~Stock},
+  title =        {Shadower:  Add soft shadows to a png image},
+  howpublished = {\url{https://github.com/markstock/shadower}},
+  year =         {2018}
+}
+```
